@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- If changes are make to this file, you must reload the entire solution for changes to take effect -->
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <MSBuildCommunityTasksPath>$(SolutionDir)\.build</MSBuildCommunityTasksPath>
+  </PropertyGroup>
+
+  <Import Project="$(MSBuildCommunityTasksPath)\MSBuild.Community.Tasks.Targets"/>
+
+  <ItemGroup>
+    <CommonAssemblyInfo Include="$(MSBuildProjectDirectory)\CommonAssemblyInfo.cs" />
+    <Compile Condition=" '$(MSBuildProjectExtension)' == '.csproj' " Include="@(CommonAssemblyInfo)" />
+    <VersionFile Include="$(SolutionDir)\VERSION" />
+  </ItemGroup>
+ 
+  <PropertyGroup>
+    <Company>Solacom Technologies, Inc</Company>
+    <Major Condition=" '$(Major)' == '' ">0</Major>
+    <Minor Condition=" '$(Minor)' == '' ">0</Minor>
+    <Build Condition=" '$(Build)' == '' ">0</Build>
+    <Revision Condition=" '$(Revision)' == '' ">0</Revision>
+    <GitHash Condition=" '$(GitHash)' == '' ">00000000</GitHash>
+    <GitTag Condition=" '$(GitTag)' == '' ">v$(Major).$(Minor)</GitTag>
+    <ProductVersion>$(Major).$(Minor).$(Build).$(Revision)</ProductVersion>
+  </PropertyGroup>
+
+  <Target Name="ReadVersionFile">
+    
+    <ReadLinesFromFile File="@(VersionFile)">
+      <Output TaskParameter="Lines" ItemName="LinesFromFile" />
+    </ReadLinesFromFile>
+
+    <ItemGroup>
+      <Lines Include="@(LinesFromFile)">
+        <Name>$([System.String]::Copy('%(LinesFromFile.Identity)').Split('=')[0])</Name>
+        <Value>$([System.String]::Copy('%(LinesFromFile.Identity)').Split('=')[1])</Value>
+      </Lines>
+    </ItemGroup>
+
+    <CreateProperty Value="%(Lines.Value)">
+      <Output TaskParameter="Value" PropertyName="%(Lines.Name)"/>
+    </CreateProperty>
+    
+  </Target>
+  
+  <Target Name="SetVersionInfo" DependsOnTargets="ReadVersionFile">
+
+    <Time>
+      <Output TaskParameter="Year" PropertyName="Year"/>
+    </Time>
+
+    <CreateProperty Value="$(Major).$(Minor).$(Build).$(Revision)">
+      <Output TaskParameter="Value" PropertyName="ProductVersion"/>
+    </CreateProperty>
+
+    <AssemblyInfo Condition=" '$(MSBuildProjectExtension)' == '.csproj' "
+        CodeLanguage="CS"
+        OutputFile="@(CommonAssemblyInfo)"
+        AssemblyTitle="$(MSBuildProjectName)"
+        AssemblyDescription="$(GitHash)"
+        AssemblyCompany="$(Company)"
+        AssemblyProduct="SolacomTest"
+        AssemblyCopyright="$(Year) $(Company)"
+        AssemblyInformationalVersion="$(Major).$(Minor) Revision $(Revision)"
+        AssemblyVersion="$(Major).$(Minor).0.0"
+        AssemblyFileVersion="$(Major).$(Minor).$(Build).$(Revision)" />
+   
+    <PropertyGroup>
+      <DefineConstants Condition=" '$(MSBuildProjectExtension)' == '.wixproj' ">
+        $(DefineConstants);
+        Major=$(Major);
+        Minor=$(Minor);
+        Build=$(Build);
+        Revision=$(Revision);
+      </DefineConstants>
+    </PropertyGroup>
+
+  </Target>
+
+  <!-- Add dependency for WiX projects -->
+  <Target Name="BeforeBuild" DependsOnTargets="SetVersionInfo">
+  </Target>
+  
+  <!-- Add dependency for C# Projects -->
+  <PropertyGroup>
+    <BuildDependsOn Condition=" '$(MSBuildProjectExtension)' == '.csproj' ">
+      SetVersionInfo;
+      $(BuildDependsOn)
+    </BuildDependsOn>
+  </PropertyGroup>
+
+</Project>

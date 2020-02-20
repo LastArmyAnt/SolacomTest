@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
+  xmlns:util="http://schemas.microsoft.com/wix/UtilExtension"
+  xmlns:bal="http://schemas.microsoft.com/wix/BalExtension">
+  <?define Version="$(var.Major).$(var.Minor).$(var.Build).$(var.Revision)"?>
+  <Bundle Name="SolacomTestBootstrapper" Version="$(var.Version)" Manufacturer="Solacom Technologies, Inc." UpgradeCode="{7C7093F3-CB0F-402C-850F-CE1E3B2D3389}">
+    <RelatedBundle Action="Upgrade" Id="{7C7093F3-CB0F-402C-850F-CE1E3B2D3389}"/>
+    <BootstrapperApplicationRef Id="WixStandardBootstrapperApplication.HyperlinkLicense">
+      <bal:WixStandardBootstrapperApplication xmlns:bal="http://schemas.microsoft.com/wix/BalExtension" ShowVersion="yes" SuppressOptionsUI="yes" LicenseUrl="" />
+    </BootstrapperApplicationRef>
+
+    <Chain DisableRollback="yes">
+      <!-- TODO: Define the list of chained packages. -->
+      <!-- <MsiPackage SourceFile="path\to\your.msi" /> -->
+      <MsiPackage Id="InstallSolaComTest" SourceFile="$(var.Install_MSI.ProjectDir)\bin\$(var.Install_MSI.Configuration)\Install_MSI.msi" DisplayInternalUI="yes" Vital="yes" Visible="yes" />
+    </Chain>
+  </Bundle>
+</Wix>

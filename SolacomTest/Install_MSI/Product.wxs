@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <!--do not change-->
+  <?define UpgradeCode="{99A535E7-4C99-4192-9107-A60B80ACF05D}"?>
+  <!--change every major version change-->
+  <?define ProductGUID="{8907F616-D379-475E-980D-B641EED2421A}"?>
+  <?define Version="$(var.Major).$(var.Minor).$(var.Build).$(var.Revision)"?>
+
+  <Product Id="$(var.ProductGUID)" Name="SolacomTest" Language="1033" Version="$(var.Version)" Manufacturer="Solacom Technologies, Inc." UpgradeCode="$(var.UpgradeCode)">
+    <Package InstallerVersion="301" Description="Test Project $(var.Major).$(var.Minor).$(var.Build).$(var.Revision)" Compressed="yes" InstallScope="perMachine"/>
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." Schedule="afterInstallExecute" />
+    <MediaTemplate EmbedCab="yes"/>
+
+    <!--Determine if/where Java is installed. The path to the registry key needs to be built from the JAVAVERSION registry key-->
+    <Property Id="JAVAVERSION">
+      <RegistrySearch Id="JavaVersion" Root="HKLM" Key="SOFTWARE\JavaSoft\Java Runtime Environment" Name="CurrentVersion" Type="raw" />
+    </Property>
+    <Condition Message="Can't determine Java version from registry key HKLM\SOFTWARE\JavaSoft\Java Runtime Environment\CurrentVersion. Please install Java and re-run this application.">
+      Installed OR JAVAVERSION
+    </Condition>
+    <Property Id="JAVAHOME">
+      <RegistrySearch Id="JavaHome" Root="HKLM" Key="SOFTWARE\JavaSoft\Java Runtime Environment\[JAVAVERSION]" Name="JavaHome" Type="raw" />
+    </Property>
+    <Condition Message="Can't determine Java install location from registry key HKLM\SOFTWARE\JavaSoft\Java Runtime Environment\[JAVAVERSION]\JavaHome. Please install Java and re-run this application.">
+      Installed OR JAVAHOME
+    </Condition>
+
+    <ComponentGroup Id="CG_Program">
+      <ComponentRef Id="SolacomTest.exe"/>
+    </ComponentGroup>
+
+    <Feature Id="ProductFeature" Title="All Features" Level="1" Absent="disallow" AllowAdvertise="no">
+      <ComponentRef Id="Registry" />
+      <ComponentGroupRef Id="CG_Program" />
+    </Feature>
+
+    <SetDirectory Id="WINDOWSVOLUME" Value="[WindowsVolume]" />
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="WINDOWSVOLUME">
+        <Directory Id="INSTALLDIR" Name="EdgeIQ">
+          <Component Id="Registry" Guid="{FDC41F3E-3D4D-4052-9054-1CFAEC404ECF}">
+            <RegistryKey Root="HKLM" Key="Software\[Manufacturer]\[ProductName]">
+              <RegistryValue Type="string" Name="InstallDir" Value="[INSTALLDIR]" />
+              <RegistryValue Type="string" Name="Version" Value="$(var.Version)" />
+            </RegistryKey>
+          </Component>
+          <Directory Id="PRODUCTDIR" Name="SolacomTest">
+            <Component Guid="{07C9EF7D-EFB3-46AD-A0F2-739ABAE05E93}" Id="SolacomTest.exe">
+              <File Id="SOLACOMTEST.EXE" Source="$(var.SolacomTest.ProjectDir)\bin\$(var.SolacomTest.Configuration)\SolacomTest.exe" />
+            </Component>
+          </Directory>
+        </Directory>
+      </Directory>
+    </Directory>
+    <UI/>
+  </Product>
+</Wix>
