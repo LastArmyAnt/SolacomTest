@@ -15,6 +15,10 @@ namespace SolacomTest
             Console.WriteLine("SolacomTest Ran");
             Console.WriteLine("File Version is {0}", ((AssemblyFileVersionAttribute)(Attribute.GetCustomAttribute(Assembly.GetExecutingAssembly(), typeof(AssemblyFileVersionAttribute)))).Version);
 
+            //a change that won't cause problems
+            int test = 1;
+            test = test +1;
+
             //Keep the console window open
             Console.WriteLine("Press any key to exit.");
             Console.ReadKey();
